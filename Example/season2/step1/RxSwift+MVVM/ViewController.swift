@@ -23,13 +23,14 @@ class ViewController: UIViewController {
         }
     }
 
-    private func setVisibleWithAnimation(_ v: UIView?, _ s: Bool) {
-        guard let v = v else { return }
-        UIView.animate(withDuration: 0.3, animations: { [weak v] in
-            v?.isHidden = !s
-        }, completion: { [weak self] _ in
+    private func setVisibleWithAnimation(_ view: UIView?, isHidden: Bool) {
+        guard let view else { return }
+
+        UIView.animate(withDuration: 0.3) { [weak view] in
+            view?.isHidden = isHidden
+        } completion: { [weak self] _ in
             self?.view.layoutIfNeeded()
-        })
+        }
     }
 
     // MARK: SYNC
@@ -38,13 +39,23 @@ class ViewController: UIViewController {
 
     @IBAction func onLoad() {
         editView.text = ""
-        setVisibleWithAnimation(activityIndicator, true)
 
-        let url = URL(string: MEMBER_LIST_URL)!
-        let data = try! Data(contentsOf: url)
-        let json = String(data: data, encoding: .utf8)
-        self.editView.text = json
-        
-        self.setVisibleWithAnimation(self.activityIndicator, false)
+        /// show indicator
+        setVisibleWithAnimation(activityIndicator, isHidden: false)
+
+        DispatchQueue.global().async { [weak self] in
+            let url = URL(string: MEMBER_LIST_URL)!
+            let data = try! Data(contentsOf: url)
+            let json = String(data: data, encoding: .utf8)
+
+            DispatchQueue.main.async {
+                self?.editView.text = json
+                if let activityIndicator = self?.activityIndicator {
+                    /// hide indicator
+                    self?.setVisibleWithAnimation(activityIndicator, isHidden: true)
+                }
+            }
+
+        }
     }
 }
