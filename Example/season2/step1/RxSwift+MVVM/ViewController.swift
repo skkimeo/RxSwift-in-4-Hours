@@ -33,6 +33,19 @@ class ViewController: UIViewController {
         }
     }
 
+
+    private func downloadJSON(from urlString: String, completion: ((String?) -> Void)?) {
+        DispatchQueue.global().async {
+            let url = URL(string: urlString)!
+            let data = try! Data(contentsOf: url)
+            let json = String(data: data, encoding: .utf8)
+
+            DispatchQueue.main.async {
+                completion?(json)
+            }
+        }
+    }
+
     // MARK: SYNC
 
     @IBOutlet var activityIndicator: UIActivityIndicatorView!
@@ -43,17 +56,11 @@ class ViewController: UIViewController {
         /// show indicator
         setVisibleWithAnimation(activityIndicator, isHidden: false)
 
-        DispatchQueue.global().async { [weak self] in
-            let url = URL(string: MEMBER_LIST_URL)!
-            let data = try! Data(contentsOf: url)
-            let json = String(data: data, encoding: .utf8)
-
-            DispatchQueue.main.async {
-                self?.editView.text = json
-                if let activityIndicator = self?.activityIndicator {
-                    /// hide indicator
-                    self?.setVisibleWithAnimation(activityIndicator, isHidden: true)
-                }
+        downloadJSON(from: MEMBER_LIST_URL) { [weak self] json in
+            self?.editView.text = json
+            if let activityIndicator = self?.activityIndicator {
+                /// hide indicator
+                self?.setVisibleWithAnimation(activityIndicator, isHidden: true)
             }
 
         }
