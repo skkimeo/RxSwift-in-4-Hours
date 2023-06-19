@@ -12,6 +12,18 @@ import UIKit
 
 let MEMBER_LIST_URL = "https://my.api.mockaroo.com/members_with_avatar.json?key=44ce18f0"
 
+class Observable<T> {
+    private let task: (@escaping (T) -> Void) -> Void
+
+    init(task: @escaping (@escaping (T) -> Void) -> Void) {
+        self.task = task
+    }
+
+    func subscribe(_ completionHandler: @escaping (T) -> Void) {
+        task(completionHandler)
+    }
+}
+
 class ViewController: UIViewController {
     @IBOutlet var timerLabel: UILabel!
     @IBOutlet var editView: UITextView!
@@ -34,14 +46,17 @@ class ViewController: UIViewController {
     }
 
 
-    private func downloadJSON(from urlString: String, completion: ((String?) -> Void)?) {
-        DispatchQueue.global().async {
-            let url = URL(string: urlString)!
-            let data = try! Data(contentsOf: url)
-            let json = String(data: data, encoding: .utf8)
+    private func downloadJSON(from urlString: String) -> Observable<String?> {
 
-            DispatchQueue.main.async {
-                completion?(json)
+        Observable { completionHandler in
+            DispatchQueue.global().async {
+                let url = URL(string: urlString)!
+                let data = try! Data(contentsOf: url)
+                let json = String(data: data, encoding: .utf8)
+
+                DispatchQueue.main.async {
+                    completionHandler(json)
+                }
             }
         }
     }
@@ -56,13 +71,13 @@ class ViewController: UIViewController {
         /// show indicator
         setVisibleWithAnimation(activityIndicator, isHidden: false)
 
-        downloadJSON(from: MEMBER_LIST_URL) { [weak self] json in
-            self?.editView.text = json
-            if let activityIndicator = self?.activityIndicator {
-                /// hide indicator
-                self?.setVisibleWithAnimation(activityIndicator, isHidden: true)
+        downloadJSON(from: MEMBER_LIST_URL)
+            .subscribe { [weak self] json in
+                self?.editView.text = json
+                if let activityIndicator = self?.activityIndicator {
+                    /// hide indicator
+                    self?.setVisibleWithAnimation(activityIndicator, isHidden: true)
+                }
             }
-
-        }
     }
 }
