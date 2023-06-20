@@ -16,19 +16,13 @@ class ViewController: UIViewController {
     @IBOutlet var timerLabel: UILabel!
     @IBOutlet var editView: UITextView!
 
-    private var disposable: Disposable?
+    private var disposeBag = DisposeBag()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
             self?.timerLabel.text = "\(Date().timeIntervalSince1970)"
         }
-    }
-
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-
-        disposable?.dispose()
     }
 
     private func setVisibleWithAnimation(_ view: UIView?, isHidden: Bool) {
@@ -74,7 +68,7 @@ class ViewController: UIViewController {
             .map { String($0?.prefix(10) ?? "empty") }
         let helloObservable = Observable.just("Hello World")
         /// 취소 가능
-        disposable = Observable.zip(jsonObservable, helloObservable) { $1 + ": " + $0 }
+        let disposable = Observable.zip(jsonObservable, helloObservable) { $1 + ": " + $0 }
             .observeOn(MainScheduler.instance) // sugar: operator
             .subscribe { json in
                 DispatchQueue.main.async {
@@ -87,5 +81,6 @@ class ViewController: UIViewController {
             } onCompleted: {
                 print("Complete")
             }
+            .disposed(by: disposeBag)
     }
 }
