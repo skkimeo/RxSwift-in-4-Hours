@@ -42,29 +42,14 @@ class ViewController: UIViewController {
     // 5. Disposed
 
     private func downloadJSON(from urlString: String) -> Observable<String?> {
-        Observable.create { emitter in
-            let url = URL(string: MEMBER_LIST_URL)!
-            let task = URLSession.shared.dataTask(with: url) { data, _, error in
 
-                if let error {
-                    emitter.onError(error)
-                    return
-                }
-
-                if let data = data, let json = String(data: data, encoding: .utf8) {
-                    emitter.onNext(json)
-                }
-
-                emitter.onCompleted()
-            }
-
-            task.resume()
-
-            return Disposables.create {
-                print("disposing")
-                task.cancel()
-            }
-        }
+        Observable.just("Hello World") /// 아래와 동일한 기능!
+//        Observable.create { emitter in
+//            emitter.onNext("Hello World")
+//            emitter.onCompleted()
+//
+//            return Disposables.create()
+//        }
     }
 
     // MARK: SYNC
@@ -83,6 +68,7 @@ class ViewController: UIViewController {
 
                 switch event {
                 case let .next(json): /// 데이터가 전달될 때
+                    print(json)
                     DispatchQueue.main.async {
                         self.editView.text = json
                         /// hide indicator
