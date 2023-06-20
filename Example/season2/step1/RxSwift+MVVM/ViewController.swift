@@ -33,23 +33,37 @@ class ViewController: UIViewController {
         }
     }
 
+    // Observable Life cycle
+    // 1. Create    -> 단순 생성
+    // 2. Subscribe -> 실제 실행 시점
+    // 3. onNext
+    // ---- END ----
+    // 4. onCompleted / onError -> 종료
+    // 5. Disposed
 
     private func downloadJSON(from urlString: String) -> Observable<String?> {
+        Observable.create { emitter in
+            let url = URL(string: MEMBER_LIST_URL)!
+            let task = URLSession.shared.dataTask(with: url) { data, _, error in
 
-        Observable.create { completionHandler in
-            DispatchQueue.global().async {
-                let url = URL(string: urlString)!
-                let data = try! Data(contentsOf: url)
-                let json = String(data: data, encoding: .utf8)
-
-                DispatchQueue.main.async {
-                    completionHandler.onNext(json)
-                    /// 클로저를 종료시키므로 순환참조 제거
-                    completionHandler.onCompleted()
+                if let error {
+                    emitter.onError(error)
+                    return
                 }
+
+                if let data = data, let json = String(data: data, encoding: .utf8) {
+                    emitter.onNext(json)
+                }
+
+                emitter.onCompleted()
             }
 
-            return Disposables.create()
+            task.resume()
+
+            return Disposables.create {
+                print("disposing")
+                task.cancel()
+            }
         }
     }
 
@@ -69,9 +83,11 @@ class ViewController: UIViewController {
 
                 switch event {
                 case let .next(json): /// 데이터가 전달될 때
-                    self.editView.text = json
-                    /// hide indicator
-                    self.setVisibleWithAnimation(self.activityIndicator, isHidden: true)
+                    DispatchQueue.main.async {
+                        self.editView.text = json
+                        /// hide indicator
+                        self.setVisibleWithAnimation(self.activityIndicator, isHidden: true)
+                    }
                 case .completed: /// 종료를 알림(i.e. 데이터가 모두 처리되었음)
                     break
                 case .error:
