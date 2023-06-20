@@ -44,6 +44,8 @@ class ViewController: UIViewController {
 
                 DispatchQueue.main.async {
                     completionHandler.onNext(json)
+                    /// 클로저를 종료시키므로 순환참조 제거
+                    completionHandler.onCompleted()
                 }
             }
 
@@ -63,18 +65,14 @@ class ViewController: UIViewController {
 
         /// 취소 가능
         let disposable = downloadJSON(from: MEMBER_LIST_URL)
-            .subscribe { [weak self] event in
+            .subscribe { event in
 
                 switch event {
-                /// 데이터가 전달될 때
-                case let .next(json):
-                    self?.editView.text = json
-                    if let activityIndicator = self?.activityIndicator {
-                        /// hide indicator
-                        self?.setVisibleWithAnimation(activityIndicator, isHidden: true)
-                    }
-                /// 종료를 알림(i.e. 데이터가 모두 처리되었음)
-                case .completed:
+                case let .next(json): /// 데이터가 전달될 때
+                    self.editView.text = json
+                    /// hide indicator
+                    self.setVisibleWithAnimation(self.activityIndicator, isHidden: true)
+                case .completed: /// 종료를 알림(i.e. 데이터가 모두 처리되었음)
                     break
                 case .error:
                     break
