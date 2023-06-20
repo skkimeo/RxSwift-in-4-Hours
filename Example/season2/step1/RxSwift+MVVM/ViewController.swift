@@ -64,21 +64,16 @@ class ViewController: UIViewController {
 
         /// 취소 가능
         let disposable = downloadJSON(from: MEMBER_LIST_URL)
-            .subscribe { event in
-
-                switch event {
-                case let .next(json): /// 데이터가 전달될 때
-                    print(json)
-                    DispatchQueue.main.async {
-                        self.editView.text = json
-                        /// hide indicator
-                        self.setVisibleWithAnimation(self.activityIndicator, isHidden: true)
-                    }
-                case .completed: /// 종료를 알림(i.e. 데이터가 모두 처리되었음)
-                    break
-                case .error:
-                    break
+            .subscribe { json in
+                DispatchQueue.main.async {
+                    self.editView.text = json
+                    /// hide indicator
+                    self.setVisibleWithAnimation(self.activityIndicator, isHidden: true)
                 }
+            } onError: { error in
+                print(error)
+            } onCompleted: {
+                print("Complete")
             }
     }
 }
