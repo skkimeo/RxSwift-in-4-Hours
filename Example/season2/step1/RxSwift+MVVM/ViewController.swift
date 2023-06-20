@@ -62,8 +62,11 @@ class ViewController: UIViewController {
         /// show indicator
         setVisibleWithAnimation(activityIndicator, isHidden: false)
 
+        let jsonObservable = downloadJSON(from: MEMBER_LIST_URL)
+            .map { String($0?.prefix(10) ?? "empty") }
+        let helloObservable = Observable.just("Hello World")
         /// 취소 가능
-        let disposable = downloadJSON(from: MEMBER_LIST_URL)
+        let disposable = Observable.zip(jsonObservable, helloObservable) { $1 + ": " + $0 }
             .observeOn(MainScheduler.instance) // sugar: operator
             .subscribe { json in
                 DispatchQueue.main.async {
