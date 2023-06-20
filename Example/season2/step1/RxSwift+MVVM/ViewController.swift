@@ -43,7 +43,7 @@ class ViewController: UIViewController {
 
     private func downloadJSON(from urlString: String) -> Observable<String?> {
 
-        Observable.just("Hello World") /// 아래와 동일한 기능!
+        Observable.from(["Hello", "World"]) /// 아래와 동일한 기능!
 //        Observable.create { emitter in
 //            emitter.onNext("Hello World")
 //            emitter.onCompleted()
