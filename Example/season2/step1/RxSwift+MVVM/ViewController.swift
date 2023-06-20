@@ -64,6 +64,7 @@ class ViewController: UIViewController {
 
         /// 취소 가능
         let disposable = downloadJSON(from: MEMBER_LIST_URL)
+            .observeOn(MainScheduler.instance) // sugar: operator
             .subscribe { json in
                 DispatchQueue.main.async {
                     self.editView.text = json
