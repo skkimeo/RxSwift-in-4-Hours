@@ -41,8 +41,8 @@ class MenuViewController: UIViewController {
 
         viewModel.itemCount
             .map { "\($0)" }
-            .observeOn(MainScheduler.instance)
-            .bind(to: itemCountLabel.rx.text)
+            .asDriver(onErrorJustReturn: "") // 에러를 "" 로 대체(스트림이 끊기지 않도록)하고 메인스레드에서 실행
+            .drive(itemCountLabel.rx.text)
             .disposed(by: disposeBag)
 
         viewModel.totalPrice

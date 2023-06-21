@@ -9,6 +9,7 @@
 import Foundation
 
 import RxSwift
+import RxRelay
 
 class MenuLisViewModel {
 
@@ -21,7 +22,8 @@ class MenuLisViewModel {
 
     // MARK: - Property
 
-    var menuObservable = BehaviorSubject<[Menu]>(value: [])
+    // UI 업데이트에 사용되는 데이터이므로 스트림이 끊어지지 않도록 relay 사용
+    var menuObservable = BehaviorRelay<[Menu]>(value: [])
     lazy var itemCount = menuObservable.map { $0.map { $0.count }.reduce(0, +) }
     lazy var totalPrice = menuObservable.map { $0.map { $0.count * $0.price }.reduce(0, +) }
 
@@ -46,14 +48,14 @@ class MenuLisViewModel {
         _ = menuObservable
             .take(1)
             .map { $0.map { Menu(name: $0.name, price: $0.price, count: 0)} }
-            .subscribe { self.menuObservable.onNext($0) }
+            .subscribe { self.menuObservable.accept($0) }
     }
 
     func changeCount(of item: Menu, increase: Int) {
         _ = menuObservable
             .take(1)
             .map { $0.map { Menu(name: $0.name, price: $0.price, count: $0.count + (item == $0 ? increase : 0)) } }
-            .subscribe { self.menuObservable.onNext($0) }
+            .subscribe { self.menuObservable.accept($0) }
     }
 
     func onOrder() {
