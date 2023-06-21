@@ -9,8 +9,22 @@
 import Foundation
 
 // viewModel(i.e. View를 위한 Model)
-struct Menu {
+struct Menu: Equatable {
+    let id = UUID()
     var name: String
     var price: Int
     var count: Int
+
+    init(name: String, price: Int, count: Int = 0) {
+        self.name = name
+        self.price = price
+        self.count = count
+    }
+}
+
+extension Menu {
+
+    init(menuItem: MenuItem) {
+        self.init(name: menuItem.name, price: menuItem.price)
+    }
 }
